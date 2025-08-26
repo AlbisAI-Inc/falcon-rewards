@@ -1,0 +1,314 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>FalconRewards — Interactive Mind Map</title>
+<style>
+  :root{
+    --bg:#0b0f14;
+    --card:#111822;
+    --ink:#d9e3f0;
+    --muted:#9db0c6;
+    --accent:#35c1a8;
+    --accent-2:#58d2b8;
+    --link:#7fe3cf;
+  }
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,#0b0f14 0%,#0f151f 100%);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto; color:var(--ink);}
+  .app{height:100%;display:flex;flex-direction:column;}
+  header{padding:14px 18px;border-bottom:1px solid #1b2634;background:rgba(17,24,34,.7);backdrop-filter: blur(6px);display:flex;align-items:center;justify-content:space-between;}
+  header h1{font-size:16px;margin:0;letter-spacing:.5px;}
+  header .meta{font-size:12px;color:var(--muted)}
+  .toolbar{display:flex;gap:8px;align-items:center}
+  button{background:#152131;border:1px solid #1e2a3a;color:var(--ink);padding:8px 10px;border-radius:10px;cursor:pointer;font:inherit}
+  button:hover{border-color:#294058}
+  .hint{color:var(--muted);font-size:12px;margin-left:8px}
+  #stage{flex:1;overflow:hidden;position:relative}
+  svg{width:100%;height:100%;display:block;user-select:none;background:radial-gradient(1200px 1200px at 60% -20%, rgba(88,210,184,.15), transparent 60%);}
+  .node{cursor:pointer}
+  .node circle{fill:#172133;stroke:var(--accent-2);stroke-width:1.2}
+  .node.root circle{fill:#193141;stroke:var(--accent);stroke-width:1.6}
+  .node text{fill:var(--ink);font-size:13px;dominant-baseline:middle}
+  .edge{stroke:#2a3b51;stroke-width:1.2}
+  .edge.active{stroke:var(--accent);stroke-opacity:.6}
+  .pill{font-size:11px;fill:#101827;stroke:#31455f;stroke-width:1;rx:10}
+  .pillText{font-size:11px;fill:#cbe3ff}
+  .tooltip{position:absolute;pointer-events:none;background:#0b1320;border:1px solid #233146;color:#cfe2ff;padding:10px 12px;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.35);font-size:12px;max-width:320px;opacity:0;transform:translateY(6px);transition:.15s}
+  .legend{position:absolute;right:14px;bottom:14px;background:#0d1522cc;border:1px solid #233146;border-radius:10px;padding:10px 12px;font-size:12px;color:#bcd0e6}
+  a { color: var(--link); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div>
+      <h1>FalconRewards — Interactive Mind Map</h1>
+      <div class="meta">Click a node to expand/collapse · Drag to pan · Scroll to zoom</div>
+    </div>
+    <div class="toolbar">
+      <button id="expandAll">Expand all</button>
+      <button id="collapseAll">Collapse all</button>
+      <button id="resetView">Reset view</button>
+      <span class="hint">MVP→v1.2 scope</span>
+    </div>
+  </header>
+  <div id="stage">
+    <svg viewBox="0 0 1200 800">
+      <g id="viewport" transform="translate(600,400) scale(1)">
+        <g id="edges"></g>
+        <g id="nodes"></g>
+      </g>
+    </svg>
+    <div class="tooltip" id="tooltip"></div>
+    <div class="legend">
+      <div><strong>Legend</strong></div>
+      <div>• Root: FalconRewards</div>
+      <div>• Branches: capabilities</div>
+      <div>• Leaves: concrete features or rules</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const data = {
+  label: "FalconRewards",
+  desc: "AI-powered rewards: earn, redeem, transfer, tiers, challenges, vouchers, and optional points→crypto. Backed by ledger, offers, risk & AI personalization.",
+  children: [
+    {
+      label: "Earn Points",
+      desc: "Make every interaction rewarding",
+      children: [
+        { label: "Transaction-based rewards", desc: "FalconPay payments, FalconFlex bills, FalconRide/Tour bookings; post on settlement" },
+        { label: "Lifestyle integration", desc: "Eco actions, carbon-neutral purchases; partner-verified feeds" },
+        { label: "Gamified challenges", desc: "Weekly personalized missions; bonus FP on completion" },
+        { label: "Real-time notifications", desc: "Instant earn confirmations & nudges" }
+      ]
+    },
+    {
+      label: "Exclusive Benefits",
+      desc: "Perks that foster loyalty & usage",
+      children: [
+        { label: "FalconPoints Loyalty", desc: "1 FP ≈ $0.015 (configurable) redemption value" },
+        { label: "Transferable points", desc: "Gift/merge (KYC L1); min 50 FP; daily caps" },
+        { label: "Tiered Rewards", desc: "Silver ×1.0 • Gold ×1.1 • Platinum ×1.25; 90d thresholds" },
+        { label: "Merchant partnerships", desc: "Gift cards, % off, credits with local/global brands" },
+        { label: "Premium features", desc: "Budgeting, priority support, VIP events" },
+        { label: "Surprise benefits", desc: "Delight moments for high‑engagement users" }
+      ]
+    },
+    {
+      label: "Crypto Conversion",
+      desc: "Optionally convert points to tokenized assets",
+      children: [
+        { label: "Point→Crypto", desc: "FP→FPNT (ERC‑20) 1:1; custodial MVP" },
+        { label: "Blockchain security", desc: "Tokenized vouchers & transparent ledger" },
+        { label: "Wide usability", desc: "Use in‑app, transfer out later" },
+        { label: "Dynamic value growth", desc: "Potential upside vs static points" },
+        { label: "Educational tools", desc: "Guides & risk disclosures" },
+        { label: "Limits & KYC", desc: "Region allowlist; L2; e.g., 50k FP/mo" }
+      ]
+    },
+    {
+      label: "AI’s Role",
+      desc: "Personalization & protection",
+      children: [
+        { label: "Behavioral insights", desc: "Affinity, seasonality, spend, geo features" },
+        { label: "Dynamic adjustments", desc: "Safe-time multipliers within margin guardrails" },
+        { label: "Predictive recommendations", desc: "Next-best-action; challenge seeding" },
+        { label: "Fraud detection", desc: "Anomaly/velocity/device checks" }
+      ]
+    },
+    {
+      label: "Implementation (API & DB)",
+      desc: "Contracts, storage, and orchestration",
+      children: [
+        { label: "API", desc: "Offers, Wallet, Ledger, Redemptions, Vouchers, Transfers, Challenges, Notifications" },
+        { label: "Data Model", desc: "Users, Wallets, Ledger, Offers, Redemptions, Vouchers, Challenges, Transfers" },
+        { label: "Microservices", desc: "Ledger, Offers, Gamification, Tiering, Risk, AI Personalization" },
+        { label: "Webhooks", desc: "Giftcard, Payments, Rides (HMAC verified)" },
+        { label: "Idempotency & Holds", desc: "2‑minute hold TTL; commit or release; rollback safe" }
+      ]
+    },
+    {
+      label: "User Flows (UI)",
+      desc: "Screens mapped to the API",
+      children: [
+        { label: "Redeem list", desc: "Offers grid/list filtered by region/tier; ring shows available FP" },
+        { label: "Confirm redemption", desc: "Swipe to confirm → hold then commit" },
+        { label: "Voucher/QR", desc: "Single‑use code; offline cache; status polling" },
+        { label: "Wallet", desc: "Sources & balances; drill into ledger" },
+        { label: "History", desc: "Earn/spend timeline; empty state CTA" }
+      ]
+    },
+    {
+      label: "Risk & Compliance",
+      desc: "Guardrails & obligations",
+      children: [
+        { label: "Fraud prevention", desc: "Velocity, OTP step‑up, device fingerprint" },
+        { label: "KYC/AML", desc: "Required for transfers & crypto" },
+        { label: "GDPR/PII", desc: "Isolation, deletion/export flows" },
+        { label: "Audit & tamper‑evidence", desc: "Hash‑chained ledger events; observability" },
+        { label: "Expiry & comms", desc: "Voucher expiry warnings; inbox & push" }
+      ]
+    }
+  ]
+};
+
+// -------- Layout (simple DFS-based tidy tree) --------
+function computeLayout(root, xStep=220, yStep=60) {
+  const nodes = [];
+  const edges = [];
+  let yCounter = 0;
+
+  function dfs(node, depth=0) {
+    node.depth = depth;
+    if (!node._collapsed && node.children && node.children.length) {
+      const kids = [];
+      for (const c of node.children) {
+        const child = dfs(c, depth+1);
+        edges.push({source: node, target: child});
+        kids.push(child);
+      }
+      // place this node in the middle of its children
+      node.y = (kids[0].y + kids[kids.length-1].y) / 2;
+    } else {
+      node.y = yCounter++;
+    }
+    node.x = depth;
+    nodes.push(node);
+    return node;
+  }
+  dfs(root, 0);
+
+  // scale to px
+  for (const n of nodes) {
+    n.px = n.x * xStep;
+    n.py = n.y * yStep;
+  }
+  return {nodes, edges};
+}
+
+// -------- SVG Rendering & Interactions --------
+const svg = document.querySelector("svg");
+const viewport = document.getElementById("viewport");
+const edgesG = document.getElementById("edges");
+const nodesG = document.getElementById("nodes");
+const tooltip = document.getElementById("tooltip");
+
+let scale = 1, tx = 0, ty = 0;
+
+function render() {
+  // Clear
+  edgesG.innerHTML = "";
+  nodesG.innerHTML = "";
+
+  const {nodes, edges} = computeLayout(data);
+
+  // edges
+  for (const e of edges) {
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    const x1 = e.source.px, y1 = e.source.py;
+    const x2 = e.target.px, y2 = e.target.py;
+    const mx = (x1 + x2) / 2;
+    path.setAttribute("d", `M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`);
+    path.setAttribute("class", "edge");
+    edgesG.appendChild(path);
+  }
+
+  // nodes
+  for (const n of nodes) {
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    g.setAttribute("class", "node" + (n === data ? " root" : ""));
+    g.setAttribute("transform", `translate(${n.px},${n.py})`);
+
+    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    circle.setAttribute("r", n === data ? 18 : 12);
+    g.appendChild(circle);
+
+    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    text.setAttribute("x",  n === data ? 26 : 20);
+    text.setAttribute("y", 0);
+    text.textContent = n.label;
+    g.appendChild(text);
+
+    // collapse indicator pill
+    if (n.children && n.children.length) {
+      const pill = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      pill.setAttribute("x", -28);
+      pill.setAttribute("y", -18);
+      pill.setAttribute("width", 22);
+      pill.setAttribute("height", 16);
+      pill.setAttribute("class", "pill");
+      g.appendChild(pill);
+
+      const sign = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      sign.setAttribute("x", -17);
+      sign.setAttribute("y", -6);
+      sign.setAttribute("class", "pillText");
+      sign.textContent = n._collapsed ? "+" : "–";
+      g.appendChild(sign);
+    }
+
+    g.addEventListener("click", (ev)=>{
+      ev.stopPropagation();
+      if (n.children && n.children.length){
+        n._collapsed = !n._collapsed;
+        render();
+      }
+    });
+
+    g.addEventListener("mousemove", (ev)=>{
+      tooltip.style.opacity = 1;
+      tooltip.style.left = (ev.clientX + 12) + "px";
+      tooltip.style.top = (ev.clientY + 12) + "px";
+      tooltip.innerHTML = `<strong>${n.label}</strong><div style="color:#9fb6d3;margin-top:4px">${n.desc || ""}</div>`;
+    });
+    g.addEventListener("mouseleave", ()=> tooltip.style.opacity = 0);
+
+    nodesG.appendChild(g);
+  }
+
+  applyTransform();
+}
+
+function applyTransform(){
+  viewport.setAttribute("transform", `translate(${600+tx},${400+ty}) scale(${scale})`);
+}
+
+// Pan & zoom
+let dragging = false, lastX=0, lastY=0;
+svg.addEventListener("mousedown", (e)=>{ dragging = true; lastX=e.clientX; lastY=e.clientY; });
+window.addEventListener("mouseup", ()=> dragging = false);
+window.addEventListener("mousemove", (e)=>{
+  if(!dragging) return;
+  tx += (e.clientX-lastX);
+  ty += (e.clientY-lastY);
+  lastX = e.clientX; lastY = e.clientY;
+  applyTransform();
+});
+svg.addEventListener("wheel", (e)=>{
+  e.preventDefault();
+  const delta = Math.sign(e.deltaY) * -0.1;
+  const newScale = Math.min(2.2, Math.max(0.4, scale + delta));
+  scale = newScale;
+  applyTransform();
+},{passive:false});
+
+// Controls
+document.getElementById("expandAll").onclick = ()=>{ walk(data, n=> n._collapsed=false); render(); };
+document.getElementById("collapseAll").onclick = ()=>{ walk(data, n=> n._collapsed= !!(n.children && n.children.length)); data._collapsed=false; render(); };
+document.getElementById("resetView").onclick = ()=>{ scale=1; tx=0; ty=0; applyTransform(); };
+
+function walk(node, fn){
+  fn(node);
+  (node.children||[]).forEach(c=> walk(c, fn));
+}
+
+// Initial state: expand level 1
+walk(data, (n)=>{ if (n !== data && n.children) n._collapsed = true; });
+data._collapsed = false;
+render();
+</script>
+</body>
+</html>
